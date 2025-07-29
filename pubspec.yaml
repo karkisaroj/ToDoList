@@ -37,6 +37,8 @@ dependencies:
   flutter_screenutil: ^5.9.3
   firebase_auth: ^5.7.0
   firebase_core: ^3.15.2
+  cloud_firestore: ^5.6.12
+
 
 dev_dependencies:
   flutter_test:

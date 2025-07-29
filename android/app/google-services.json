@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "387407112502",
+    "project_id": "intern-project-ff46b",
+    "storage_bucket": "intern-project-ff46b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:387407112502:android:74f5c89c578d5be6c9ab97",
+        "android_client_info": {
+          "package_name": "com.example.intern01"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcCScdUlbYNGqYic_fjHJt0_5yQzcvaJU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
