@@ -2,9 +2,10 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intern01/models/user_model.dart';
 
 class AuthCall {
-  Future<String?> signUpEmailPassword(
+  Future<UserModel?> signUpEmailPassword(
     String email,
     String password,
     String role,
@@ -33,26 +34,22 @@ class AuthCall {
         return null;
       } else {
         log("Failed to get user ID after registration");
-        return "Failed to get user ID";
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         log("The password provided is too weak.");
-        return "The password provided is too weak.";
       } else if (e.code == 'email-already-in-use') {
         log("The account already exists for that email.");
-        return "The account already exists for that email.";
       } else {
         log("Firebase Auth Error: ${e.message}");
-        return e.message;
       }
     } catch (e) {
       log("Unexpected error: $e");
-      return "An unexpected error occurred";
     }
+    return null;
   }
 
-  Future<String?> loginAsEmailPassword(String email, String password) async {
+  Future<UserModel?> loginAsEmailPassword(String email, String password) async {
     try {
       FirebaseAuth auth = FirebaseAuth.instance;
       UserCredential success = await auth.signInWithEmailAndPassword(
@@ -69,7 +66,7 @@ class AuthCall {
             .get();
         if (adminDoc.exists) {
           log("Admin found");
-          return "admin";
+          return UserModel(role: "admin", email: email, password: password);
         }
 
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
@@ -78,25 +75,33 @@ class AuthCall {
             .get();
         if (userDoc.exists) {
           log("User found");
-          return "user";
+          return UserModel(role: "user", email: email, password: password);
         }
-
-        return "Role not found";
       } else {
-        return "Login failed";
+        log("Failed");
       }
     } on FirebaseAuthException catch (e) {
       log("Firebase Auth Error: ${e.code}");
       if (e.code == 'user-not-found') {
-        return "No user found with this email";
+        log("No user found with this email");
       } else if (e.code == 'wrong-password') {
-        return "Wrong password";
+        log("Wrong password");
       } else {
-        return e.message ?? "Login failed";
+        log(e.message ?? "Login failed");
       }
     } catch (e) {
       log("Unexpected login error: $e");
-      return "An unexpected error occurred";
+      log("An unexpected error occurred");
+    }
+    return null;
+  }
+
+  Future<void> signOut() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    try {
+      auth.signOut();
+    } on FirebaseAuthException catch (e) {
+      log("Error $e");
     }
   }
 }
