@@ -6,7 +6,7 @@ import 'package:intern01/bloc/auth/auth_event.dart';
 import 'package:intern01/bloc/auth/auth_state.dart';
 import 'package:intern01/screens/admin_screen.dart';
 import 'package:intern01/screens/user_screen.dart';
-// You need to add this import at the top:
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Register extends StatefulWidget {
