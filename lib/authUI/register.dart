@@ -1,9 +1,9 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intern01/auth/auth_call.dart';
-import 'package:intern01/screen/admin_screen.dart';
-import 'package:intern01/screen/user_screen.dart';
+import 'package:intern01/repositories/auth_repository.dart';
+import 'package:intern01/screens/admin_screen.dart';
+import 'package:intern01/screens/user_screen.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});

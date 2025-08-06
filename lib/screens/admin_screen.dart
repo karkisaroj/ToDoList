@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intern01/auth/auth_call.dart';
+import 'package:intern01/repositories/auth_repository.dart';
 import 'package:intern01/models/list_model.dart';
 
 class AdminScreen extends StatefulWidget {

@@ -46,10 +46,10 @@ class AuthCall {
     } catch (e) {
       log("Unexpected error: $e");
     }
-    return null;
+    return UserModel(role: role, email: email, password: password);
   }
 
-  Future<UserModel?> loginAsEmailPassword(String email, String password) async {
+  Future<UserModel> loginAsEmailPassword(String email, String password) async {
     try {
       FirebaseAuth auth = FirebaseAuth.instance;
       UserCredential success = await auth.signInWithEmailAndPassword(
@@ -77,23 +77,27 @@ class AuthCall {
           log("User found");
           return UserModel(role: "user", email: email, password: password);
         }
+        throw Exception("User not found in the database");
       } else {
-        log("Failed");
+        log("Failed to get user ID after login");
+        throw Exception("Failed to get user ID");
       }
     } on FirebaseAuthException catch (e) {
       log("Firebase Auth Error: ${e.code}");
       if (e.code == 'user-not-found') {
         log("No user found with this email");
+        throw Exception("No user found with this email");
       } else if (e.code == 'wrong-password') {
         log("Wrong password");
+        throw Exception("Wrong password");
       } else {
         log(e.message ?? "Login failed");
+        throw Exception(e.message ?? "Login failed");
       }
     } catch (e) {
       log("Unexpected login error: $e");
-      log("An unexpected error occurred");
+      throw Exception("An unexpected error occurred during login");
     }
-    return null;
   }
 
   Future<void> signOut() async {
@@ -102,6 +106,48 @@ class AuthCall {
       auth.signOut();
     } on FirebaseAuthException catch (e) {
       log("Error $e");
+    }
+  }
+
+  Future<UserModel?> getCurrentUserWithRole(String uid) async {
+    try {
+      log("Getting user role for UID: $uid");
+
+      // Check in admins collection first
+      DocumentSnapshot adminDoc = await FirebaseFirestore.instance
+          .collection('admins')
+          .doc(uid)
+          .get();
+      if (adminDoc.exists) {
+        Map<String, dynamic> data = adminDoc.data() as Map<String, dynamic>;
+        log("Admin found");
+        return UserModel(
+          role: "admin",
+          email: data['email'] ?? "",
+          password: "", // We don't store/return passwords for security
+        );
+      }
+
+      // Check in users collection
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+      if (userDoc.exists) {
+        Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+        log("User found");
+        return UserModel(
+          role: "user",
+          email: data['email'] ?? "",
+          password: "", // We don't store/return passwords for security
+        );
+      }
+
+      log("User not found in database");
+      return null;
+    } catch (e) {
+      log("Error getting user role: $e");
+      return null;
     }
   }
 }
