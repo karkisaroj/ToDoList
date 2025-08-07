@@ -42,6 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoading());
       try {
         await _authCall.signOut();
+
         emit(AuthInitial());
       } catch (e) {
         emit(AuthError(message: "Logout failed"));

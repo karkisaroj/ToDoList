@@ -68,8 +68,14 @@ class _SplashScreenState extends State<SplashScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.network(
-                    "https://www.freepik.com/free-vector/branding-identity-corporate-wellness-vector-logo-design_28699649.htm#fromView=keyword&page=1&position=0&uuid=e9f096f2-5fa9-4ea9-abcb-5f4f6fcb20bc&query=Health+Wellness+Logo",
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.business, size: 50, color: Colors.white),
                   ),
                   SizedBox(height: 20),
                   CircularProgressIndicator(
