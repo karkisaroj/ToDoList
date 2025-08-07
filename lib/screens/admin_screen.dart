@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -99,7 +98,10 @@ class _AdminScreenState extends State<AdminScreen> {
                           IconButton(
                             onPressed: () {
                               context.read<TaskBloc>().add(
-                                DeleteTaskEvent(taskID: task.taskId),
+                                DeleteTaskEvent(
+                                  taskID: task.taskId,
+                                  userEmail: "",
+                                ),
                               );
                             },
                             icon: Icon(Icons.delete),
