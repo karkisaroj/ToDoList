@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -365,7 +367,46 @@ class _RegisterState extends State<Register> {
                                       ),
                                       child: ElevatedButton(
                                         onPressed: () {
-                                          register("admin");
+                                          if (emailController.text.isNotEmpty &&
+                                              passwordController
+                                                  .text
+                                                  .isNotEmpty) {
+                                            register("admin");
+                                          } else if (emailController
+                                              .text
+                                              .isEmpty) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "Fill out all the details",
+                                                ),
+                                              ),
+                                            );
+                                          } else if (passwordController
+                                              .text
+                                              .isEmpty) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "Fill out all the details",
+                                                ),
+                                              ),
+                                            );
+                                          } else {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "Something went wrong",
+                                                ),
+                                              ),
+                                            );
+                                          }
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.transparent,
@@ -426,7 +467,22 @@ class _RegisterState extends State<Register> {
                                       ),
                                       child: ElevatedButton(
                                         onPressed: () {
-                                          register("user");
+                                          if (emailController.text.isNotEmpty ||
+                                              passwordController
+                                                  .text
+                                                  .isNotEmpty) {
+                                            register("user");
+                                          } else {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "Please fill out all the fields",
+                                                ),
+                                              ),
+                                            );
+                                          }
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.transparent,
