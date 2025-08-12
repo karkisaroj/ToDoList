@@ -14,11 +14,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => AuthBloc()),
-        BlocProvider(create: (context) => TaskBloc()),
-        BlocProvider(create: (context) => NavigationBloc()),
-        BlocProvider(create: (context) => ThemeBloc()),
-        BlocProvider(create: (context) => ImageBloc()),
+        BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
+        BlocProvider<TaskBloc>(create: (context) => TaskBloc()),
+        BlocProvider<NavigationBloc>(
+          create: (context) => NavigationBloc(),
+          lazy: false,
+        ),
+        BlocProvider<ThemeBloc>(create: (context) => ThemeBloc(), lazy: false),
+        BlocProvider<ImageBloc>(create: (context) => ImageBloc()),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, themeState) {

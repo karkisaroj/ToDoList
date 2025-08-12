@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intern01/bloc/auth/auth_bloc.dart';
 import 'package:intern01/bloc/auth/auth_state.dart';
 import 'package:intern01/bloc/image_upload/image_bloc.dart';
+import 'package:intern01/bloc/theme/theme_bloc.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -33,7 +34,6 @@ class _ProfilePageState extends State<ProfilePage> {
   void _loadUserData() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess) {
-      currentUserEmail = authState.email;
       context.read<ImageBloc>().add(LoadUserImageEvent(authState.email));
     }
   }
@@ -148,7 +148,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         final profileImage = _buildProfileImage(state);
 
                         return CircleAvatar(
-                          radius: 60,
                           backgroundColor: Colors.purple.shade200,
                           backgroundImage: profileImage,
                           child: profileImage == null
@@ -337,6 +336,42 @@ class _ProfilePageState extends State<ProfilePage> {
                         }
                         return SizedBox.shrink();
                       },
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Setting"),
+                              content: BlocBuilder<ThemeBloc, ThemeState>(
+                                builder: (context, themeState) {
+                                  return TextButton(
+                                    onPressed: () {
+                                      if (themeState is DarkTheme) {
+                                        context.read<ThemeBloc>().add(
+                                          ToggleLight(),
+                                        );
+                                      } else {
+                                        context.read<ThemeBloc>().add(
+                                          ToggleDark(),
+                                        );
+                                      }
+                                    },
+                                    child: Icon(
+                                      themeState is DarkTheme
+                                          ? Icons.light_mode
+                                          : Icons.dark_mode,
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: Text("Go to settings"),
                     ),
                   ],
                 ),
