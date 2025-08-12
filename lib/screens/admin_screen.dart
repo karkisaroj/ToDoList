@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intern01/bloc/auth/auth_bloc.dart';
 import 'package:intern01/bloc/auth/auth_event.dart';
 import 'package:intern01/bloc/auth/auth_state.dart';
@@ -50,7 +49,7 @@ class _AdminScreenState extends State<AdminScreen> {
               child: Text(
                 "Sign Out",
                 style: TextStyle(
-                  fontSize: 10.h,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -77,10 +76,7 @@ class _AdminScreenState extends State<AdminScreen> {
                   final task = state.tasks[index];
                   return Card(
                     elevation: 5,
-                    margin: EdgeInsets.symmetric(
-                      horizontal: 10.h,
-                      vertical: 12.w,
-                    ),
+                    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                     child: ListTile(
                       tileColor: Colors.white10,
                       title: Text(

@@ -28,13 +28,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           event.password,
           event.role,
         );
+
         if (result != null) {
           emit(AuthSuccess(email: result.email, role: result.role));
         } else {
-          emit(AuthError(message: "Login failed"));
+          emit(AuthError(message: "Signup failed - no user data returned"));
         }
       } catch (e) {
-        emit(AuthError(message: e.toString()));
+        emit(AuthError(message: e.toString().replaceAll('Exception: ', '')));
       }
     });
 

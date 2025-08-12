@@ -1,4 +1,4 @@
-abstract class AuthState {}
+sealed class AuthState {}
 
 class AuthInitial extends AuthState {}
 
@@ -8,6 +8,8 @@ class AuthSuccess extends AuthState {
   final String email;
   final String role;
   AuthSuccess({required this.email, required this.role});
+
+  get userEmail => null;
 }
 
 class AuthError extends AuthState {

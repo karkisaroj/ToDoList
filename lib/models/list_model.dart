@@ -25,6 +25,8 @@ class ListModel {
       isCompleted: data['isCompleted'] ?? false,
     );
   }
+
+  get id => null;
   Map<String, dynamic> toJson() {
     return {
       'taskId': taskId,

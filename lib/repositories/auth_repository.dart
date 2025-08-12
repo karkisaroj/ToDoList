@@ -25,13 +25,36 @@ class AuthCall {
               'uid': uid,
               "email": email,
               "role": role,
-              "created at": Timestamp.now(),
+              "created_at": Timestamp.now(), // Fixed typo
             });
-        return null;
+
+        return UserModel(role: role, email: email, password: password);
+      } else {
+        throw Exception('Failed to create user account');
       }
-    } on FirebaseAuthException catch (_) {
-    } catch (_) {}
-    return UserModel(role: role, email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getFirebaseErrorMessage(e.code));
+    } catch (e) {
+      throw Exception('Signup failed: $e');
+    }
+    // ✅ Removed the problematic return statement here
+  }
+
+  String _getFirebaseErrorMessage(String code) {
+    switch (code) {
+      case 'weak-password':
+        return 'Password is too weak (minimum 6 characters required)';
+      case 'email-already-in-use':
+        return 'An account already exists with this email';
+      case 'invalid-email':
+        return 'Please enter a valid email address';
+      case 'operation-not-allowed':
+        return 'Email/password accounts are not enabled';
+      case 'too-many-requests':
+        return 'Too many requests. Please try again later';
+      default:
+        return 'Signup failed: $code';
+    }
   }
 
   Future<UserModel> loginAsEmailPassword(String email, String password) async {
@@ -41,6 +64,7 @@ class AuthCall {
         email: email,
         password: password,
       );
+
       final uid = success.user?.uid;
       if (uid != null) {
         DocumentSnapshot adminDoc = await FirebaseFirestore.instance
@@ -76,11 +100,10 @@ class AuthCall {
   }
 
   Future<void> signOut() async {
-    FirebaseAuth auth = FirebaseAuth.instance;
     try {
-      auth.signOut();
-    } on FirebaseAuthException catch (_) {
-      // Handle error silently
+      await FirebaseAuth.instance.signOut();
+    } on FirebaseAuthException {
+      throw Exception('Failed to sign out');
     }
   }
 
@@ -111,9 +134,8 @@ class AuthCall {
         }
         return UserModel(role: "user", email: email, password: "");
       }
-
       return null;
-    } catch (_) {
+    } catch (e) {
       return null;
     }
   }

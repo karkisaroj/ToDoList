@@ -5,7 +5,7 @@ import 'package:intern01/bloc/auth/auth_event.dart';
 import 'package:intern01/bloc/auth/auth_state.dart';
 import 'package:intern01/screens/register.dart';
 import 'package:intern01/screens/admin_screen.dart';
-import 'package:intern01/screens/user_screen.dart';
+import 'package:intern01/screens/task_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,7 +18,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<AuthBloc>().add(CheckAuthStatusEvent());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthBloc>().add(CheckAuthStatusEvent());
+    });
   }
 
   @override
@@ -34,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
               );
             } else if (state.role == "user") {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => UserScreen()),
+                MaterialPageRoute(builder: (context) => TaskPage()),
               );
             }
           } else if (state is AuthError || state is AuthInitial) {

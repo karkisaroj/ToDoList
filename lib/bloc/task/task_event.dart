@@ -11,7 +11,11 @@ class DeleteTaskEvent extends TaskEvent {
 class AddTaskEvent extends TaskEvent {
   final String title;
   final String userEmail;
-  AddTaskEvent({required this.title, required this.userEmail});
+  AddTaskEvent({
+    required this.title,
+    required this.userEmail,
+    required String task,
+  });
 }
 
 class ToogleTaskEvent extends TaskEvent {
