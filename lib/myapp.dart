@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intern01/bloc/image_upload/image_bloc.dart';
+import 'package:intern01/bloc/navigation/navigation_bloc.dart';
+import 'package:intern01/bloc/task/task_bloc.dart';
+import 'package:intern01/bloc/theme/theme_bloc.dart';
 import 'package:intern01/screens/splash_screen.dart';
-
 import 'bloc/auth/auth_bloc.dart';
 
 class MyApp extends StatelessWidget {
@@ -10,10 +12,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AuthBloc(),
-      child: MaterialApp(
-        home: ScreenUtilInit(builder: (context, child) => SplashScreen()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => AuthBloc()),
+        BlocProvider(create: (context) => TaskBloc()),
+        BlocProvider(create: (context) => NavigationBloc()),
+        BlocProvider(create: (context) => ThemeBloc()),
+        BlocProvider(create: (context) => ImageBloc()),
+      ],
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, themeState) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: themeState.themeData,
+            home: SplashScreen(),
+          );
+        },
       ),
     );
   }

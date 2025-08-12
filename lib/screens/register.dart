@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intern01/bloc/auth/auth_bloc.dart';
 import 'package:intern01/bloc/auth/auth_event.dart';
 import 'package:intern01/bloc/auth/auth_state.dart';
 import 'package:intern01/screens/admin_screen.dart';
-import 'package:intern01/screens/user_screen.dart';
-
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intern01/screens/task_page.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -17,24 +14,10 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
-  void navigate(String role) async {
-    if (role == "admin") {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AdminScreen()),
-      );
-    } else if (role == "user") {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => UserScreen()),
-      );
-    }
-  }
-
-  void register(String role) async {
+  void register(String role) {
     context.read<AuthBloc>().add(
       SignupRequested(
         email: emailController.text,
@@ -44,7 +27,7 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  void login() async {
+  void login() {
     context.read<AuthBloc>().add(
       LoginRequested(
         email: emailController.text,
@@ -55,8 +38,6 @@ class _RegisterState extends State<Register> {
 
   @override
   Widget build(BuildContext context) {
-    MediaQueryData querySize = MediaQuery.of(context);
-    final naviation = Navigator.of(context);
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthLoading) {
@@ -67,82 +48,66 @@ class _RegisterState extends State<Register> {
         } else if (state is AuthSuccess) {
           Navigator.of(context).pop();
           if (state.role == "admin") {
-            naviation.push(
-              MaterialPageRoute(builder: (context) => AdminScreen()),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => AdminScreen()));
           } else {
-            naviation.push(
-              MaterialPageRoute(builder: (context) => UserScreen()),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => TaskPage()));
           }
         } else if (state is AuthError) {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: Text("Register UI"), centerTitle: true),
-        body: Column(
-          children: [
-            SizedBox(height: 100.h),
-            Padding(
-              padding: const EdgeInsets.all(50),
-              child: TextFormField(
+        appBar: AppBar(title: Text('Login')),
+        body: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextField(
                 controller: emailController,
                 decoration: InputDecoration(
-                  hintText: "Enter your email",
-                  hintStyle: TextStyle(color: Colors.black),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(width: querySize.size.width * 0.8),
-                  ),
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
                 ),
               ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(50),
-              child: TextFormField(
+              SizedBox(height: 16),
+              TextField(
                 controller: passwordController,
+                obscureText: true,
                 decoration: InputDecoration(
-                  hintText: "Enter your Password",
-                  hintStyle: TextStyle(color: Colors.black),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(width: querySize.size.width * 0.8),
-                  ),
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
                 ),
               ),
-            ),
-            SizedBox(height: 30.h),
-
-            ElevatedButton(
-              onPressed: () {
-                login();
-              },
-              child: Text("Login"),
-            ),
-            SizedBox(height: 30.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    register("admin");
-                  },
-                  child: Text("Enter as admin"),
-                ),
-                SizedBox(width: 30.w),
-                ElevatedButton(
-                  onPressed: () {
-                    register("user");
-                  },
-                  child: Text("Enter as a user"),
-                ),
-              ],
-            ),
-          ],
+              SizedBox(height: 24),
+              ElevatedButton(onPressed: login, child: Text('Login')),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => register('admin'),
+                      child: Text('Register as Admin'),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => register('user'),
+                      child: Text('Register as User'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

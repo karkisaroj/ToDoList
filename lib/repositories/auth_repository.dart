@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intern01/models/user_model.dart';
@@ -19,7 +17,6 @@ class AuthCall {
 
       final uid = success.user?.uid;
       if (uid != null) {
-        log("User created successfully with UID: $uid");
         final userCollection = role == 'admin' ? 'admins' : 'users';
         await FirebaseFirestore.instance
             .collection(userCollection)
@@ -28,25 +25,36 @@ class AuthCall {
               'uid': uid,
               "email": email,
               "role": role,
-              "created at": Timestamp.now(),
+              "created_at": Timestamp.now(), // Fixed typo
             });
-        log("User data saved to Firestore successfully");
-        return null;
+
+        return UserModel(role: role, email: email, password: password);
       } else {
-        log("Failed to get user ID after registration");
+        throw Exception('Failed to create user account');
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        log("The password provided is too weak.");
-      } else if (e.code == 'email-already-in-use') {
-        log("The account already exists for that email.");
-      } else {
-        log("Firebase Auth Error: ${e.message}");
-      }
+      throw Exception(_getFirebaseErrorMessage(e.code));
     } catch (e) {
-      log("Unexpected error: $e");
+      throw Exception('Signup failed: $e');
     }
-    return UserModel(role: role, email: email, password: password);
+    // ✅ Removed the problematic return statement here
+  }
+
+  String _getFirebaseErrorMessage(String code) {
+    switch (code) {
+      case 'weak-password':
+        return 'Password is too weak (minimum 6 characters required)';
+      case 'email-already-in-use':
+        return 'An account already exists with this email';
+      case 'invalid-email':
+        return 'Please enter a valid email address';
+      case 'operation-not-allowed':
+        return 'Email/password accounts are not enabled';
+      case 'too-many-requests':
+        return 'Too many requests. Please try again later';
+      default:
+        return 'Signup failed: $code';
+    }
   }
 
   Future<UserModel> loginAsEmailPassword(String email, String password) async {
@@ -56,16 +64,14 @@ class AuthCall {
         email: email,
         password: password,
       );
+
       final uid = success.user?.uid;
       if (uid != null) {
-        log("Login successful, checking role...");
-
         DocumentSnapshot adminDoc = await FirebaseFirestore.instance
             .collection('admins')
             .doc(uid)
             .get();
         if (adminDoc.exists) {
-          log("Admin found");
           return UserModel(role: "admin", email: email, password: password);
         }
 
@@ -74,79 +80,62 @@ class AuthCall {
             .doc(uid)
             .get();
         if (userDoc.exists) {
-          log("User found");
           return UserModel(role: "user", email: email, password: password);
         }
         throw Exception("User not found in the database");
       } else {
-        log("Failed to get user ID after login");
         throw Exception("Failed to get user ID");
       }
     } on FirebaseAuthException catch (e) {
-      log("Firebase Auth Error: ${e.code}");
       if (e.code == 'user-not-found') {
-        log("No user found with this email");
         throw Exception("No user found with this email");
       } else if (e.code == 'wrong-password') {
-        log("Wrong password");
         throw Exception("Wrong password");
       } else {
-        log(e.message ?? "Login failed");
         throw Exception(e.message ?? "Login failed");
       }
     } catch (e) {
-      log("Unexpected login error: $e");
       throw Exception("An unexpected error occurred during login");
     }
   }
 
   Future<void> signOut() async {
-    FirebaseAuth auth = FirebaseAuth.instance;
     try {
-      auth.signOut();
-    } on FirebaseAuthException catch (e) {
-      log("Error $e");
+      await FirebaseAuth.instance.signOut();
+    } on FirebaseAuthException {
+      throw Exception('Failed to sign out');
     }
   }
 
   Future<UserModel?> getCurrentUserWithRole(String uid) async {
     try {
-      log("Getting user role for UID: $uid");
-
-      // Check in admins collection first
       DocumentSnapshot adminDoc = await FirebaseFirestore.instance
           .collection('admins')
           .doc(uid)
           .get();
       if (adminDoc.exists) {
         Map<String, dynamic> data = adminDoc.data() as Map<String, dynamic>;
-        log("Admin found");
-        return UserModel(
-          role: "admin",
-          email: data['email'] ?? "",
-          password: "", // We don't store/return passwords for security
-        );
+        String email = data['email'] ?? "";
+        if (email.isEmpty) {
+          email = FirebaseAuth.instance.currentUser?.email ?? "";
+        }
+        return UserModel(role: "admin", email: email, password: "");
       }
 
-      // Check in users collection
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .get();
       if (userDoc.exists) {
         Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
-        log("User found");
-        return UserModel(
-          role: "user",
-          email: data['email'] ?? "",
-          password: "", // We don't store/return passwords for security
-        );
+        String email = data['email'] ?? "";
+        if (email.isEmpty) {
+          email = FirebaseAuth.instance.currentUser?.email ?? "";
+        }
+        return UserModel(role: "user", email: email, password: "");
       }
-
-      log("User not found in database");
       return null;
     } catch (e) {
-      log("Error getting user role: $e");
       return null;
     }
   }

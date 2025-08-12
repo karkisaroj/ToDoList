@@ -1,8 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intern01/repositories/auth_repository.dart';
-import 'package:intern01/models/list_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intern01/bloc/auth/auth_bloc.dart';
+import 'package:intern01/bloc/auth/auth_event.dart';
+import 'package:intern01/bloc/auth/auth_state.dart';
+import 'package:intern01/bloc/task/task_bloc.dart';
+import 'package:intern01/bloc/task/task_event.dart';
+import 'package:intern01/bloc/task/task_state.dart';
+import 'package:intern01/screens/register.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -12,79 +16,102 @@ class AdminScreen extends StatefulWidget {
 }
 
 class _AdminScreenState extends State<AdminScreen> {
-  bool isChecked = false;
-  Future<void> deleteTask(String taskId) async {
-    await FirebaseFirestore.instance.collection("tasks").doc(taskId).delete();
+  @override
+  void initState() {
+    super.initState();
+    context.read<TaskBloc>().add(LoadTasksEvent());
   }
+
+  bool isChecked = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Admin Screen"), centerTitle: true),
-      bottomNavigationBar: ElevatedButton(
-        onPressed: () async {
-          AuthCall auth = AuthCall();
-          auth.signOut();
-        },
-        child: Text(
-          "Sign Out",
-          style: TextStyle(
-            fontSize: 10.h,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-      ),
-      body: FutureBuilder<QuerySnapshot>(
-        future: FirebaseFirestore.instance.collection('tasks').get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text("Error : ${snapshot.error}"));
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text("No tasks found"));
-          }
-          final tasks = snapshot.data!.docs
-              .map((doc) => ListModel.fromDocument(doc))
-              .toList();
-          return ListView.builder(
-            itemCount: tasks.length,
-            itemBuilder: (context, index) {
-              final task = tasks[index];
-              return Card(
-                elevation: 5,
-                margin: EdgeInsets.symmetric(horizontal: 10.h, vertical: 12.w),
-                child: ListTile(
-                  tileColor: Colors.white10,
-                  title: Text(
-                    task.title,
-                    style: TextStyle(
-                      decoration: task.isCompleted
-                          ? TextDecoration.lineThrough
-                          : null,
-                    ),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Checkbox(value: task.isCompleted, onChanged: null),
-                      IconButton(
-                        onPressed: () {
-                          deleteTask(task.taskId);
-                          setState(() {});
-                        },
-                        icon: Icon(Icons.delete),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthInitial) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => Register()),
+            (route) => false,
           );
-        },
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text("Admin Screen"), centerTitle: true),
+        bottomNavigationBar: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            if (state is AuthLoading) {
+              return CircularProgressIndicator();
+            }
+            return ElevatedButton(
+              onPressed: () async {
+                context.read<AuthBloc>().add(LogoutRequested());
+              },
+              child: Text(
+                "Sign Out",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            );
+          },
+        ),
+        body: BlocBuilder<TaskBloc, TaskState>(
+          builder: (context, state) {
+            if (state is TaskLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (state is TaskError) {
+              return Center(child: Text("Error : ${state.message}"));
+            }
+            if (state is TaskLoaded) {
+              if (state.tasks.isEmpty) {
+                return Center(child: Text("No tasks found"));
+              }
+
+              return ListView.builder(
+                itemCount: state.tasks.length,
+                itemBuilder: (context, index) {
+                  final task = state.tasks[index];
+                  return Card(
+                    elevation: 5,
+                    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                    child: ListTile(
+                      tileColor: Colors.white10,
+                      title: Text(
+                        task.title,
+                        style: TextStyle(
+                          decoration: task.isCompleted
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Checkbox(value: task.isCompleted, onChanged: null),
+                          IconButton(
+                            onPressed: () {
+                              context.read<TaskBloc>().add(
+                                DeleteTaskEvent(
+                                  taskID: task.taskId,
+                                  userEmail: "",
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.delete),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }
+            return Center(child: Text("No tasks"));
+          },
+        ),
       ),
     );
   }
