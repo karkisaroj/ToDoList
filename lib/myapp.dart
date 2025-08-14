@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intern01/bloc/image_upload/image_bloc.dart';
-import 'package:intern01/bloc/navigation/navigation_bloc.dart';
+import 'package:intern01/bloc/navigation/bloc/navigation_bloc.dart';
+import 'package:intern01/bloc/navigation/cubit/navigation_cubit.dart';
 import 'package:intern01/bloc/task/task_bloc.dart';
 import 'package:intern01/bloc/theme/theme_bloc.dart';
 import 'package:intern01/screens/splash_screen.dart';
+import 'package:intern01/screens/task_page.dart';
 import 'bloc/auth/auth_bloc.dart';
 
 class MyApp extends StatelessWidget {
@@ -22,6 +24,7 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<ThemeBloc>(create: (context) => ThemeBloc(), lazy: false),
         BlocProvider<ImageBloc>(create: (context) => ImageBloc()),
+        BlocProvider(create: (_) => NavigationCubit(), child: TaskPage()),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, themeState) {

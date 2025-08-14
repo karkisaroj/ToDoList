@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,11 +35,14 @@ class _ProfilePageState extends State<ProfilePage> {
   void _loadUserData() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess) {
+      currentUserEmail = authState.email;
       context.read<ImageBloc>().add(LoadUserImageEvent(authState.email));
     }
   }
 
   Future<void> _pickImage() async {
+    final bloc = context.read<ImageBloc>();
+    final messenger = ScaffoldMessenger.of(context);
     if (currentUserEmail == null) {
       ScaffoldMessenger.of(
         context,
@@ -56,9 +60,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (image != null) {
         final selectedFile = File(image.path);
-        context.read<ImageBloc>().add(SelectImageEvent(selectedFile));
+        bloc.add(SelectImageEvent(selectedFile));
 
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text('Image selected: ${image.name}'),
             backgroundColor: Colors.green,
@@ -66,7 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text('Error selecting image: $e'),
           backgroundColor: Colors.red,
@@ -147,77 +151,41 @@ class _ProfilePageState extends State<ProfilePage> {
                       builder: (context, state) {
                         final profileImage = _buildProfileImage(state);
 
-                        return CircleAvatar(
-                          backgroundColor: Colors.purple.shade200,
-                          backgroundImage: profileImage,
-                          child: profileImage == null
-                              ? Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: Colors.purple,
-                                )
-                              : null,
+                        return Card(
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Colors.purple.shade200,
+                                backgroundImage: profileImage,
+                                child: profileImage == null
+                                    ? Icon(
+                                        Icons.person,
+                                        size: 60,
+                                        color: Colors.purple,
+                                      )
+                                    : null,
+                              ),
+                              SizedBox(width: 20),
+                              Text(
+                                'Profile Page',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       },
                     ),
+
                     SizedBox(height: 20),
-                    Text(
-                      'Profile Page',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8),
                     if (currentUserEmail != null)
                       Text('Welcome, $currentUserEmail')
                     else
                       Text('Your profile information will appear here'),
 
                     SizedBox(height: 30),
-
-                    Card(
-                      elevation: 4,
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Profile Description',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            TextField(
-                              controller: _descriptionController,
-                              maxLines: 3,
-                              decoration: InputDecoration(
-                                hintText: 'Write something about yourself...',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.all(12),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed: _saveDescription,
-                                  icon: Icon(Icons.save),
-                                  label: Text('Save Description'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
 
                     SizedBox(height: 20),
 
@@ -244,9 +212,13 @@ class _ProfilePageState extends State<ProfilePage> {
                               SizedBox(height: 10),
                               ElevatedButton.icon(
                                 onPressed: () {
-                                  context.read<ImageBloc>().add(
-                                    ClearImageEvent(),
-                                  );
+                                  try {
+                                    context.read<ImageBloc>().add(
+                                      ClearImageEvent(),
+                                    );
+                                  } catch (e) {
+                                    log("Unable to clear image event");
+                                  }
                                 },
                                 icon: Icon(Icons.delete),
                                 label: Text("Cancel"),
@@ -359,10 +331,85 @@ class _ProfilePageState extends State<ProfilePage> {
                                         );
                                       }
                                     },
-                                    child: Icon(
-                                      themeState is DarkTheme
-                                          ? Icons.light_mode
-                                          : Icons.dark_mode,
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        children: [
+                                          Card(
+                                            elevation: 4,
+                                            child: Padding(
+                                              padding: EdgeInsets.all(16),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Profile Description',
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 10),
+                                                  TextField(
+                                                    controller:
+                                                        _descriptionController,
+                                                    maxLines: 3,
+                                                    decoration: InputDecoration(
+                                                      hintText:
+                                                          'Write something about yourself...',
+                                                      border:
+                                                          OutlineInputBorder(),
+                                                      contentPadding:
+                                                          EdgeInsets.all(12),
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 10),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      ElevatedButton.icon(
+                                                        onPressed:
+                                                            _saveDescription,
+                                                        icon: Icon(Icons.save),
+                                                        label: Text(
+                                                          'Save Description',
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                          ),
+                                                        ),
+                                                        style:
+                                                            ElevatedButton.styleFrom(
+                                                              backgroundColor:
+                                                                  Colors.green,
+                                                              foregroundColor:
+                                                                  Colors.white,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(height: 20),
+                                          Card(
+                                            child: Row(
+                                              children: [
+                                                Text("Change theme:"),
+                                                SizedBox(width: 20),
+                                                Icon(
+                                                  themeState is DarkTheme
+                                                      ? Icons.light_mode
+                                                      : Icons.dark_mode,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   );
                                 },

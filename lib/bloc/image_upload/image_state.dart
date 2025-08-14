@@ -22,7 +22,6 @@ final class ImageUploading extends ImageState {
 final class ImageUploaded extends ImageState {
   final String imageUrl;
   final String? description;
-
   ImageUploaded(this.imageUrl, {this.description});
 }
 

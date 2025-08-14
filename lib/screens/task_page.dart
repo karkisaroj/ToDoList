@@ -164,7 +164,9 @@ class _TaskPageState extends State<TaskPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(['Tasks', 'Profile', 'Settings'][_currentIndex]),
+          title: Text(['Tasks', 'Profile', 'Posts'][_currentIndex]),
+          centerTitle: true,
+          automaticallyImplyLeading: false,
           actions: [
             if (_currentIndex == 0)
               IconButton(icon: Icon(Icons.add), onPressed: _showAddTaskDialog),
@@ -197,10 +199,7 @@ class _TaskPageState extends State<TaskPage> {
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Tasks'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.post_add), label: 'Posts'),
           ],
         ),
       ),

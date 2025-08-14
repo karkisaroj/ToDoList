@@ -11,6 +11,13 @@ class UploadImageEvent extends ImageEvent {
   UploadImageEvent(this.imageFile, this.userEmail, {this.description});
 }
 
+class UploadPostEvent extends ImageEvent {
+  final File imageFile;
+  final String? description;
+  final String userEmail;
+  UploadPostEvent(this.description, this.imageFile, this.userEmail);
+}
+
 class LoadUserImageEvent extends ImageEvent {
   final String userEmail;
 
@@ -24,6 +31,11 @@ class SelectImageEvent extends ImageEvent {
 }
 
 class ClearImageEvent extends ImageEvent {}
+
+class DeleteImageEvent extends ImageEvent {
+  final String postId;
+  DeleteImageEvent(this.postId);
+}
 
 class SaveDescriptionEvent extends ImageEvent {
   final String description;
