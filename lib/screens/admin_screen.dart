@@ -26,6 +26,8 @@ class _AdminScreenState extends State<AdminScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthInitial) {
@@ -36,26 +38,47 @@ class _AdminScreenState extends State<AdminScreen> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: Text("Admin Screen"), centerTitle: true),
-        bottomNavigationBar: BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            if (state is AuthLoading) {
-              return CircularProgressIndicator();
-            }
-            return ElevatedButton(
-              onPressed: () async {
-                context.read<AuthBloc>().add(LogoutRequested());
-              },
-              child: Text(
-                "Sign Out",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: const Text(
+            'Admin Dashboard',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+          ),
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+        ),
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is AuthLoading) {
+                return const LinearProgressIndicator();
+              }
+              return SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    context.read<AuthBloc>().add(LogoutRequested());
+                  },
+                  icon: const Icon(Icons.logout),
+                  label: const Text(
+                    'Sign Out',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
         body: BlocBuilder<TaskBloc, TaskState>(
           builder: (context, state) {
@@ -70,18 +93,39 @@ class _AdminScreenState extends State<AdminScreen> {
                 return Center(child: Text("No tasks found"));
               }
 
-              return ListView.builder(
+              return ListView.separated(
                 itemCount: state.tasks.length,
+                separatorBuilder: (context, i) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final task = state.tasks[index];
                   return Card(
-                    elevation: 5,
-                    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    color: colorScheme.surface,
                     child: ListTile(
-                      tileColor: Colors.white10,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
+                      leading: CircleAvatar(
+                        backgroundColor: task.isCompleted
+                            ? Colors.greenAccent[100]
+                            : colorScheme.primary.withValues(alpha: 0.14),
+                        child: Icon(
+                          task.isCompleted ? Icons.check_circle : Icons.pending,
+                          color: task.isCompleted
+                              ? Colors.green
+                              : colorScheme.primary,
+                        ),
+                      ),
                       title: Text(
                         task.title,
                         style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 17,
+                          color: colorScheme.onSurface,
                           decoration: task.isCompleted
                               ? TextDecoration.lineThrough
                               : null,
@@ -90,17 +134,22 @@ class _AdminScreenState extends State<AdminScreen> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Checkbox(value: task.isCompleted, onChanged: null),
+                          Checkbox(
+                            value: task.isCompleted,
+                            onChanged: null,
+                            activeColor: colorScheme.primary,
+                          ),
                           IconButton(
                             onPressed: () {
                               context.read<TaskBloc>().add(
                                 DeleteTaskEvent(
                                   taskID: task.taskId,
-                                  userEmail: "",
+                                  userEmail: '',
                                 ),
                               );
                             },
-                            icon: Icon(Icons.delete),
+                            icon: Icon(Icons.delete, color: colorScheme.error),
+                            tooltip: 'Delete Task',
                           ),
                         ],
                       ),

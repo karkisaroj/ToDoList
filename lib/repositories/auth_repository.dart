@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intern01/models/user_model.dart';
+import 'dart:developer';
 
 class AuthCall {
   Future<UserModel?> signUpEmailPassword(
@@ -30,12 +31,12 @@ class AuthCall {
 
         return UserModel(role: role, email: email, password: password);
       } else {
-        throw Exception('Failed to create user account');
+        throw 'Failed to create user account';
       }
     } on FirebaseAuthException catch (e) {
-      throw Exception(_getFirebaseErrorMessage(e.code));
+      throw _getFirebaseErrorMessage(e.code);
     } catch (e) {
-      throw Exception('Signup failed: $e');
+      throw 'Signup failed. Please try again.';
     }
   }
 
@@ -71,7 +72,7 @@ class AuthCall {
             .doc(uid)
             .get();
         if (adminDoc.exists) {
-          return UserModel(role: "admin", email: email, password: password);
+          return UserModel(role: 'admin', email: email, password: password);
         }
 
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
@@ -79,22 +80,24 @@ class AuthCall {
             .doc(uid)
             .get();
         if (userDoc.exists) {
-          return UserModel(role: "user", email: email, password: password);
+          return UserModel(role: 'user', email: email, password: password);
         }
-        throw Exception("User not found in the database");
+        log('User not found in the database');
+        throw 'User not found in the database';
       } else {
-        throw Exception("Failed to get user ID");
+        log('Failed to get user ID');
+        throw 'Failed to get user ID';
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
-        throw Exception("No user found with this email");
+        throw 'No user found with this email';
       } else if (e.code == 'wrong-password') {
-        throw Exception("Wrong password");
+        throw 'Wrong password';
       } else {
-        throw Exception(e.message ?? "Login failed");
+        throw e.message ?? 'Login failed';
       }
     } catch (e) {
-      throw Exception("An unexpected error occurred during login");
+      throw 'An unexpected error occurred during login.';
     }
   }
 

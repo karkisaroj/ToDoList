@@ -43,33 +43,67 @@ class _TaskPageState extends State<TaskPage> {
     showDialog(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
-          title: Text("Add New Task"),
-          content: TextField(
-            onChanged: (value) => taskTitle = value,
-            decoration: InputDecoration(labelText: "Task title"),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                if (taskTitle.isNotEmpty && currentUserEmail != null) {
-                  context.read<TaskBloc>().add(
-                    AddTaskEvent(
-                      title: taskTitle,
-                      userEmail: currentUserEmail!,
-                      task: taskTitle,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Add New Task",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  onChanged: (value) => taskTitle = value,
+                  decoration: InputDecoration(
+                    labelText: "Task title",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  );
-                  Navigator.of(ctx).pop();
-                }
-              },
-              child: Text("Add"),
+                    filled: true,
+                    fillColor: Color(0xFFF6F8FA),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text("Cancel"),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (taskTitle.isNotEmpty && currentUserEmail != null) {
+                          context.read<TaskBloc>().add(
+                            AddTaskEvent(
+                              title: taskTitle,
+                              userEmail: currentUserEmail!,
+                              task: taskTitle,
+                            ),
+                          );
+                          Navigator.of(ctx).pop();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF22223B),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text("Add"),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -79,35 +113,38 @@ class _TaskPageState extends State<TaskPage> {
     return BlocBuilder<TaskBloc, TaskState>(
       builder: (context, state) {
         if (state is TaskLoading) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
         if (state is TaskError) {
           return Center(child: Text('Error: ${state.message}'));
         }
         if (state is TaskLoaded) {
           if (state.tasks.isEmpty) {
-            return Center(child: Text('No tasks found.'));
+            return const Center(child: Text('No tasks found.'));
           }
-          return ListView.builder(
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
             itemCount: state.tasks.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final task = state.tasks[index];
               return Card(
-                margin: EdgeInsets.all(8),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                color: Colors.white,
                 child: ListTile(
-                  title: Text(
-                    task.title,
-                    style: TextStyle(
-                      decoration: task.isCompleted
-                          ? TextDecoration.lineThrough
-                          : null,
-                    ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
                   ),
                   leading: IconButton(
                     icon: Icon(
                       task.isCompleted
                           ? Icons.check_circle
                           : Icons.radio_button_unchecked,
+                      color: task.isCompleted ? Colors.green : Colors.grey,
                     ),
                     onPressed: () {
                       if (currentUserEmail != null) {
@@ -121,8 +158,19 @@ class _TaskPageState extends State<TaskPage> {
                       }
                     },
                   ),
+                  title: Text(
+                    task.title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF22223B),
+                      decoration: task.isCompleted
+                          ? TextDecoration.lineThrough
+                          : null,
+                    ),
+                  ),
                   trailing: IconButton(
-                    icon: Icon(Icons.delete),
+                    icon: const Icon(Icons.delete, color: Colors.redAccent),
                     onPressed: () {
                       if (currentUserEmail != null) {
                         context.read<TaskBloc>().add(
@@ -139,7 +187,7 @@ class _TaskPageState extends State<TaskPage> {
             },
           );
         }
-        return Center(child: Text("Welcome to Tasks"));
+        return const Center(child: Text("Welcome to Tasks"));
       },
     );
   }
@@ -163,18 +211,26 @@ class _TaskPageState extends State<TaskPage> {
         }
       },
       child: Scaffold(
+        backgroundColor: const Color(0xFFF7F8FA),
         appBar: AppBar(
-          title: Text(['Tasks', 'Profile', 'Posts'][_currentIndex]),
+          title: Text(
+            ['Tasks', 'Profile', 'Posts'][_currentIndex],
+            style: const TextStyle(
+              color: Color(0xFF22223B),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           centerTitle: true,
+          backgroundColor: Colors.white,
+          elevation: 1,
           automaticallyImplyLeading: false,
           actions: [
-            if (_currentIndex == 0)
-              IconButton(icon: Icon(Icons.add), onPressed: _showAddTaskDialog),
             IconButton(
-              icon: Icon(Icons.logout),
+              icon: const Icon(Icons.logout, color: Color(0xFF4A4E69)),
               onPressed: () {
                 context.read<AuthBloc>().add(LogoutRequested());
               },
+              tooltip: 'Logout',
             ),
           ],
         ),
@@ -184,19 +240,41 @@ class _TaskPageState extends State<TaskPage> {
             setState(() => _currentIndex = index);
             if (index == 0) _loadUserTasks();
           },
-          children: [_buildTaskList(), ProfilePage(), PostScreen()],
+          children: [
+            Stack(
+              children: [
+                _buildTaskList(),
+                if (_currentIndex == 0)
+                  Positioned(
+                    bottom: 24,
+                    right: 24,
+                    child: FloatingActionButton(
+                      onPressed: _showAddTaskDialog,
+                      backgroundColor: const Color(0xFF22223B),
+                      foregroundColor: Colors.white,
+                      child: const Icon(Icons.add),
+                    ),
+                  ),
+              ],
+            ),
+            ProfilePage(),
+            PostScreen(),
+          ],
         ),
         bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: Colors.white,
           currentIndex: _currentIndex,
+          selectedItemColor: const Color(0xFF22223B),
+          unselectedItemColor: Colors.grey,
           onTap: (index) {
             setState(() => _currentIndex = index);
             _pageController.animateToPage(
               index,
-              duration: Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
             );
           },
-          items: [
+          items: const [
             BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Tasks'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
             BottomNavigationBarItem(icon: Icon(Icons.post_add), label: 'Posts'),

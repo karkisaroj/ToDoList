@@ -7,6 +7,15 @@ import 'package:intern01/bloc/auth/auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthCall _authCall = AuthCall();
   AuthBloc() : super(AuthInitial()) {
+    on<LogoutRequested>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        await _authCall.signOut();
+        emit(AuthInitial());
+      } catch (e) {
+        emit(AuthError(message: "Logout failed"));
+      }
+    });
     on<LoginRequested>((event, emit) async {
       emit(AuthLoading());
       try {
@@ -16,7 +25,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
         emit(AuthSuccess(email: result.email, role: result.role));
       } catch (e) {
-        emit(AuthError(message: e.toString()));
+        String errorMsg = "Login failed";
+        if (e is FirebaseAuthException) {
+          errorMsg = e.message ?? errorMsg;
+        } else if (e is Exception) {
+          errorMsg = e.toString().replaceAll('Exception: ', '');
+        }
+        emit(AuthError(message: errorMsg));
       }
     });
 
@@ -35,18 +50,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthError(message: "Signup failed - no user data returned"));
         }
       } catch (e) {
-        emit(AuthError(message: e.toString().replaceAll('Exception: ', '')));
-      }
-    });
-
-    on<LogoutRequested>((event, emit) async {
-      emit(AuthLoading());
-      try {
-        await _authCall.signOut();
-
-        emit(AuthInitial());
-      } catch (e) {
-        emit(AuthError(message: "Logout failed"));
+        String errorMsg = "Signup failed";
+        if (e is FirebaseAuthException) {
+          errorMsg = e.message ?? errorMsg;
+        } else if (e is Exception) {
+          errorMsg = e.toString().replaceAll('Exception: ', '');
+        }
+        emit(AuthError(message: errorMsg));
       }
     });
 
