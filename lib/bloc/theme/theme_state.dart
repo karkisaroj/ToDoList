@@ -14,32 +14,18 @@ final class LightTheme extends ThemeState {
   LightTheme()
     : super(
         ThemeData.light().copyWith(
-          colorScheme: ColorScheme(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.grey,
             brightness: Brightness.light,
-            primary: const Color(0xFF22223B),
-            onPrimary: Colors.white,
-            secondary: const Color(0xFF4A4E69),
-            onSecondary: Colors.white,
-            error: Colors.redAccent,
-            onError: Colors.white,
-            surface: Colors.white,
-            onSurface: Colors.black,
           ),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF22223B),
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.grey,
             foregroundColor: Colors.white,
-            elevation: 1,
           ),
           scaffoldBackgroundColor: Colors.white,
-          cardColor: Colors.white,
           textTheme: ThemeData.light().textTheme.apply(
             bodyColor: Colors.black,
             displayColor: Colors.black,
-          ),
-          iconTheme: const IconThemeData(color: Colors.black),
-          floatingActionButtonTheme: const FloatingActionButtonThemeData(
-            backgroundColor: Color(0xFF22223B),
-            foregroundColor: Colors.white,
           ),
         ),
       );
@@ -49,32 +35,18 @@ class DarkTheme extends ThemeState {
   DarkTheme()
     : super(
         ThemeData.dark().copyWith(
-          colorScheme: ColorScheme(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.grey,
             brightness: Brightness.dark,
-            primary: Colors.white,
-            onPrimary: Colors.black,
-            secondary: Colors.white,
-            onSecondary: Colors.black,
-            error: Colors.redAccent,
-            onError: Colors.black,
-            surface: const Color(0xFF23262F),
-            onSurface: Colors.white,
           ),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF181A20),
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.black,
             foregroundColor: Colors.white,
-            elevation: 1,
           ),
-          scaffoldBackgroundColor: Color(0xFF181A20),
-          cardColor: Color(0xFF23262F),
+          scaffoldBackgroundColor: Colors.black,
           textTheme: ThemeData.dark().textTheme.apply(
             bodyColor: Colors.white,
             displayColor: Colors.white,
-          ),
-          iconTheme: const IconThemeData(color: Colors.white),
-          floatingActionButtonTheme: const FloatingActionButtonThemeData(
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
           ),
         ),
       );
