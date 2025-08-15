@@ -1,8 +1,10 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:bloc/bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intern01/bloc/auth/auth_state.dart';
 import 'package:intern01/services/cloudinary_service.dart';
 
 part 'image_event.dart';
@@ -12,9 +14,11 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
   ImageBloc() : super(ImageInitial()) {
     on<SelectImageEvent>(_onSelectImage);
     on<UploadImageEvent>(_onUploadImage);
+    on<UploadPostEvent>(_onUploadPost);
     on<LoadUserImageEvent>(_onLoadUserImage);
     on<ClearImageEvent>(_onClearImage);
     on<SaveDescriptionEvent>(_onSaveDescription);
+    on<DeleteImageEvent>(_onDeleteCard);
   }
 
   void _onSelectImage(SelectImageEvent event, Emitter<ImageState> emit) {
@@ -63,14 +67,42 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
     }
   }
 
+  Future<void> _onUploadPost(
+    UploadPostEvent event,
+    Emitter<ImageState> emit,
+  ) async {
+    emit(ImageUploading(event.imageFile));
+
+    try {
+      final imageUrl = await CloudinaryService.instance.postImage(
+        event.imageFile,
+      );
+
+      if (imageUrl != null) {
+        await _saveToFirestore(imageUrl, event.userEmail, event.description);
+        emit(ImageUploaded(imageUrl, description: event.description));
+      } else {
+        emit(
+          ImageUploadFailed(
+            'Failed to upload to Cloudinary',
+            selectedFile: event.imageFile,
+          ),
+        );
+      }
+    } catch (error) {
+      emit(ImageUploadFailed(error.toString(), selectedFile: event.imageFile));
+    }
+  }
+
   Future<void> _onLoadUserImage(
     LoadUserImageEvent event,
     Emitter<ImageState> emit,
   ) async {
     try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
       final doc = await FirebaseFirestore.instance
-          .collection('imagePost')
-          .doc(event.userEmail)
+          .collection('users')
+          .doc(uid)
           .get();
 
       if (doc.exists && doc.data()?['profileImageUrl'] != null) {
@@ -105,11 +137,11 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
       }
 
       if (currentImageUrl != null) {
-        await _saveDescriptionToFirestore(
-          currentImageUrl,
-          event.userEmail,
-          event.description,
-        );
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'description': event.description,
+          'lastUpdated': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
         emit(DescriptionSaved(currentImageUrl, event.description));
         emit(ImageLoaded(currentImageUrl, description: event.description));
       }
@@ -121,12 +153,47 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
   void _onClearImage(ClearImageEvent event, Emitter<ImageState> emit) {
     if (state is ImageLoaded) {
       final loadedState = state as ImageLoaded;
+      final authState = state as AuthSuccess;
+
       emit(
         ImageLoaded(loadedState.imageUrl, description: loadedState.description),
       );
+      try {
+        _deleteFromFirestore(
+          loadedState.imageUrl,
+          authState.email,
+          loadedState.description,
+        );
+      } catch (e) {
+        emit(ImageInitial());
+        log("Error deleting the card");
+      }
     } else {
       emit(ImageInitial());
     }
+  }
+
+  void _onDeleteCard(DeleteImageEvent event, Emitter<ImageState> emit) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(event.postId)
+          .delete();
+      emit(ImageInitial());
+    } catch (e) {
+      log("Failed to delete post: $e");
+    }
+  }
+
+  void _deleteFromFirestore(
+    String imageUrl,
+    String currentUserEmail,
+    String? description,
+  ) async {
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(currentUserEmail)
+        .delete();
   }
 
   Future<void> _saveToFirestore(
@@ -134,28 +201,12 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
     String userEmail,
     String? description,
   ) async {
-    await FirebaseFirestore.instance
-        .collection('imagePost')
-        .doc(userEmail)
-        .set({
-          'profileImageUrl': imageUrl,
-          'description': description ?? '',
-          'email': userEmail,
-          'lastUpdated': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-  }
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'profileImageUrl': imageUrl,
+      'description': description ?? '',
 
-  Future<void> _saveDescriptionToFirestore(
-    String imageUrl,
-    String userEmail,
-    String description,
-  ) async {
-    await FirebaseFirestore.instance
-        .collection('imagePost')
-        .doc(userEmail)
-        .update({
-          'description': description,
-          'lastUpdated': FieldValue.serverTimestamp(),
-        });
+      'lastUpdated': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 }
