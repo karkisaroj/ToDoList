@@ -25,7 +25,7 @@ class AuthCall {
               'uid': uid,
               "email": email,
               "role": role,
-              "created_at": Timestamp.now(), // Fixed typo
+              "created_at": Timestamp.now(),
             });
 
         return UserModel(role: role, email: email, password: password);
@@ -37,7 +37,6 @@ class AuthCall {
     } catch (e) {
       throw Exception('Signup failed: $e');
     }
-    // ✅ Removed the problematic return statement here
   }
 
   String _getFirebaseErrorMessage(String code) {
