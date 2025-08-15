@@ -34,11 +34,14 @@ class _ProfilePageState extends State<ProfilePage> {
   void _loadUserData() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess) {
+      currentUserEmail = authState.email;
       context.read<ImageBloc>().add(LoadUserImageEvent(authState.email));
     }
   }
 
   Future<void> _pickImage() async {
+    final bloc = context.read<ImageBloc>();
+    final messenger = ScaffoldMessenger.of(context);
     if (currentUserEmail == null) {
       ScaffoldMessenger.of(
         context,
@@ -56,9 +59,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (image != null) {
         final selectedFile = File(image.path);
-        context.read<ImageBloc>().add(SelectImageEvent(selectedFile));
+        bloc.add(SelectImageEvent(selectedFile));
 
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text('Image selected: ${image.name}'),
             backgroundColor: Colors.green,
@@ -66,7 +69,7 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text('Error selecting image: $e'),
           backgroundColor: Colors.red,
@@ -117,7 +120,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, authState) {
           if (authState is AuthSuccess && currentUserEmail != authState.email) {
@@ -137,79 +143,162 @@ class _ProfilePageState extends State<ProfilePage> {
             }
           },
           child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: SingleChildScrollView(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 32,
+                ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(height: 20),
-                    BlocBuilder<ImageBloc, ImageState>(
-                      builder: (context, state) {
-                        final profileImage = _buildProfileImage(state);
-
-                        return CircleAvatar(
-                          backgroundColor: Colors.purple.shade200,
-                          backgroundImage: profileImage,
-                          child: profileImage == null
-                              ? Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: Colors.purple,
-                                )
-                              : null,
-                        );
-                      },
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Profile Page',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    Center(
+                      child: BlocBuilder<ImageBloc, ImageState>(
+                        builder: (context, state) {
+                          final profileImage = _buildProfileImage(state);
+                          return Card(
+                            elevation: 6,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            color: colorScheme.surface,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 24,
+                              ),
+                              child: Column(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 48,
+                                    backgroundColor: colorScheme.onSurface
+                                        .withOpacity(0.08),
+                                    backgroundImage: profileImage,
+                                    child: profileImage == null
+                                        ? Icon(
+                                            Icons.person,
+                                            size: 48,
+                                            color: colorScheme.onSurface
+                                                .withOpacity(0.5),
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    currentUserEmail ?? 'No email',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton.icon(
+                                    onPressed: _pickImage,
+                                    icon: const Icon(Icons.edit, size: 18),
+                                    label: const Text('Edit Profile Picture'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: colorScheme.primary,
+                                      foregroundColor: colorScheme.onPrimary,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                  BlocBuilder<ImageBloc, ImageState>(
+                                    builder: (context, state) {
+                                      if (state is ImageSelected ||
+                                          (state is ImageUploadFailed &&
+                                              state.selectedFile != null)) {
+                                        final file = state is ImageSelected
+                                            ? state.selectedFile
+                                            : (state as ImageUploadFailed)
+                                                  .selectedFile!;
+                                        return Padding(
+                                          padding: const EdgeInsets.only(),
+                                          child: ElevatedButton.icon(
+                                            onPressed: () => _uploadImage(file),
+                                            icon: const Icon(Icons.save),
+                                            label: const Text(
+                                              'Save Profile Picture',
+                                            ),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.green,
+                                              foregroundColor: Colors.white,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    SizedBox(height: 8),
-                    if (currentUserEmail != null)
-                      Text('Welcome, $currentUserEmail')
-                    else
-                      Text('Your profile information will appear here'),
-
-                    SizedBox(height: 30),
-
+                    const SizedBox(height: 32),
                     Card(
-                      elevation: 4,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      color: colorScheme.surface,
                       child: Padding(
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(50),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
                               'Profile Description',
                               style: TextStyle(
-                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                color: colorScheme.onSurface,
                               ),
                             ),
-                            SizedBox(height: 10),
+                            const SizedBox(height: 10),
                             TextField(
                               controller: _descriptionController,
                               maxLines: 3,
+                              style: TextStyle(color: colorScheme.onSurface),
                               decoration: InputDecoration(
                                 hintText: 'Write something about yourself...',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.all(12),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+
+                                filled: true,
+                                fillColor: colorScheme.surfaceContainerHighest,
+                                contentPadding: const EdgeInsets.all(40),
+                                hintStyle: TextStyle(
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                ),
                               ),
                             ),
-                            SizedBox(height: 10),
+                            const SizedBox(height: 15),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 ElevatedButton.icon(
                                   onPressed: _saveDescription,
-                                  icon: Icon(Icons.save),
-                                  label: Text('Save Description'),
+                                  icon: const Icon(Icons.save, size: 15),
+                                  label: const Text('Save'),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
+                                    backgroundColor: colorScheme.primary,
+                                    foregroundColor: colorScheme.onPrimary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -218,62 +307,19 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
-
-                    SizedBox(height: 20),
-
-                    BlocBuilder<ImageBloc, ImageState>(
-                      builder: (context, state) {
-                        return Column(
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: _pickImage,
-                              icon: Icon(Icons.camera_alt),
-                              label: Text("Select Profile Picture"),
-                            ),
-                            if (state is ImageSelected) ...[
-                              SizedBox(height: 10),
-                              ElevatedButton.icon(
-                                onPressed: () =>
-                                    _uploadImage(state.selectedFile),
-                                icon: Icon(Icons.cloud_upload),
-                                label: Text("Upload with Description"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                ),
-                              ),
-                              SizedBox(height: 10),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  context.read<ImageBloc>().add(
-                                    ClearImageEvent(),
-                                  );
-                                },
-                                icon: Icon(Icons.delete),
-                                label: Text("Cancel"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                ),
-                              ),
-                            ],
-                          ],
-                        );
-                      },
-                    ),
-
-                    SizedBox(height: 20),
-
+                    const SizedBox(height: 10),
                     BlocBuilder<ImageBloc, ImageState>(
                       builder: (context, state) {
                         if (state is ImageUploading) {
                           return Column(
                             children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 8),
-                              Text('Uploading image and description...'),
+                              const CircularProgressIndicator(),
+                              const SizedBox(height: 8),
+                              const Text('Uploading image and description...'),
                             ],
                           );
                         } else if (state is ImageUploaded) {
-                          return Text(
+                          return const Text(
                             'Image and description uploaded successfully!',
                             style: TextStyle(
                               color: Colors.green,
@@ -285,25 +331,23 @@ class _ProfilePageState extends State<ProfilePage> {
                             children: [
                               Text(
                                 'Upload failed: ${state.error}',
-                                style: TextStyle(color: Colors.red),
+                                style: const TextStyle(color: Colors.red),
                                 textAlign: TextAlign.center,
                               ),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               if (state.selectedFile != null)
                                 ElevatedButton(
                                   onPressed: () =>
                                       _uploadImage(state.selectedFile!),
-                                  child: Text("Retry Upload"),
+                                  child: const Text("Retry Upload"),
                                 ),
                             ],
                           );
                         }
-                        return SizedBox.shrink();
+                        return const SizedBox.shrink();
                       },
                     ),
-
-                    SizedBox(height: 20),
-
+                    const SizedBox(height: 24),
                     BlocBuilder<ImageBloc, ImageState>(
                       builder: (context, state) {
                         String? description;
@@ -312,12 +356,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         } else if (state is ImageUploaded) {
                           description = state.description;
                         }
-
                         if (description != null && description.isNotEmpty) {
                           return Card(
-                            color: Colors.blue.shade50,
+                            color: colorScheme.secondary.withOpacity(0.1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: Padding(
-                              padding: EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(12),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -325,53 +371,98 @@ class _ProfilePageState extends State<ProfilePage> {
                                     'Current Description:',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurface,
                                     ),
                                   ),
-                                  SizedBox(height: 5),
-                                  Text(description),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    description,
+                                    style: TextStyle(
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                           );
                         }
-                        return SizedBox.shrink();
+                        return const SizedBox.shrink();
                       },
                     ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
                       onPressed: () {
-                        showDialog(
+                        showModalBottomSheet(
                           context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text("Setting"),
-                              content: BlocBuilder<ThemeBloc, ThemeState>(
-                                builder: (context, themeState) {
-                                  return TextButton(
-                                    onPressed: () {
-                                      if (themeState is DarkTheme) {
-                                        context.read<ThemeBloc>().add(
-                                          ToggleLight(),
-                                        );
-                                      } else {
-                                        context.read<ThemeBloc>().add(
-                                          ToggleDark(),
-                                        );
-                                      }
-                                    },
-                                    child: Icon(
-                                      themeState is DarkTheme
-                                          ? Icons.light_mode
-                                          : Icons.dark_mode,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(24),
+                            ),
+                          ),
+                          builder: (context) {
+                            return Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const Text(
+                                    'Settings',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                  );
-                                },
+                                  ),
+                                  const SizedBox(height: 16),
+                                  BlocBuilder<ThemeBloc, ThemeState>(
+                                    builder: (context, themeState) {
+                                      return ListTile(
+                                        leading: Icon(
+                                          themeState is DarkTheme
+                                              ? Icons.light_mode
+                                              : Icons.dark_mode,
+                                          color: const Color(0xFF4A4E69),
+                                        ),
+                                        title: Text(
+                                          themeState is DarkTheme
+                                              ? 'Switch to Light Mode'
+                                              : 'Switch to Dark Mode',
+                                        ),
+                                        onTap: () {
+                                          if (themeState is DarkTheme) {
+                                            context.read<ThemeBloc>().add(
+                                              ToggleLight(),
+                                            );
+                                          } else {
+                                            context.read<ThemeBloc>().add(
+                                              ToggleDark(),
+                                            );
+                                          }
+                                          Navigator.pop(context);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ],
                               ),
                             );
                           },
                         );
                       },
-                      child: Text("Go to settings"),
+                      icon: const Icon(Icons.settings),
+                      label: const Text("Settings"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF22223B),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: const BorderSide(
+                          color: Color(0xFF4A4E69),
+                          width: 1,
+                        ),
+                      ),
                     ),
                   ],
                 ),
