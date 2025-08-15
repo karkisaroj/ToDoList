@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intern01/bloc/image_upload/image_bloc.dart';
+import 'package:intern01/bloc/image/image_bloc.dart';
 import 'package:intern01/bloc/navigation/navigation_bloc.dart';
 import 'package:intern01/bloc/task/task_bloc.dart';
 import 'package:intern01/bloc/theme/theme_bloc.dart';

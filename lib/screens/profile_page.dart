@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intern01/bloc/auth/auth_bloc.dart';
 import 'package:intern01/bloc/auth/auth_state.dart';
-import 'package:intern01/bloc/image_upload/image_bloc.dart';
+import 'package:intern01/bloc/image/image_bloc.dart';
 import 'package:intern01/bloc/theme/theme_bloc.dart';
 
 class ProfilePage extends StatefulWidget {
