@@ -30,108 +30,168 @@ class _PostScreenState extends State<PostScreen> {
   void _showAddPostDialog() async {
     TextEditingController descriptionController = TextEditingController();
     XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-
     if (pickedFile == null || currentUserEmail == null) return;
-
     if (!mounted) return;
+    FocusScope.of(context).unfocus();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Add Post'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.file(File(pickedFile.path), height: 120),
-            SizedBox(height: 10),
-            TextField(
-              controller: descriptionController,
-              decoration: InputDecoration(hintText: 'Enter description'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              context.read<ImageBloc>().add(
-                UploadPostEvent(
-                  descriptionController.text.trim(),
-                  File(pickedFile.path),
-                  currentUserEmail!,
-                ),
-              );
-              Navigator.of(context).pop();
-            },
-            child: Text('Save'),
+      builder: (context) => SingleChildScrollView(
+        child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ],
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Add Post',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 16),
+                Image.file(File(pickedFile.path), height: 120),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: descriptionController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter description',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<ImageBloc>().add(
+                          UploadPostEvent(
+                            descriptionController.text.trim(),
+                            File(pickedFile.path),
+                            currentUserEmail!,
+                          ),
+                        );
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('Save'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: BlocListener<ImageBloc, ImageState>(
-        listener: (context, state) async {
-          if (state is ImageUploaded) {
-            await FirebaseFirestore.instance.collection('posts').add({
-              'imageUrl': state.imageUrl,
-              'description': state.description ?? '',
-              'email': currentUserEmail,
-              'timestamp': FieldValue.serverTimestamp(),
-            });
-          }
-        },
+        listener: (context, state) {},
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('posts')
+              .where('email', isEqualTo: currentUserEmail)
               .orderBy('timestamp', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             }
             final docs = snapshot.data!.docs;
             if (docs.isEmpty) {
-              return Center(child: Text('No posts yet. Tap + to add one.'));
+              return const Center(
+                child: Text('No posts yet. Tap + to add one.'),
+              );
             }
-            return ListView.builder(
+            return ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               itemCount: docs.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final docId = docs[index].id;
                 final data = docs[index].data() as Map<String, dynamic>;
                 final imageUrl = data['imageUrl'] ?? '';
                 final description = data['description'] ?? '';
-                return Container(
-                  padding: EdgeInsets.all(18),
-                  child: Card(
-                    margin: EdgeInsets.all(12),
+                return Card(
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  color: colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (imageUrl.isNotEmpty)
-                          Image.network(
-                            imageUrl,
-                            height: 200,
-                            fit: BoxFit.cover,
-                          ),
-                        SizedBox(height: 25),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Center(child: Text(description)),
-                            SizedBox(height: 16),
-                            FloatingActionButton(
-                              mini: true,
-                              backgroundColor: Colors.white,
-                              splashColor: Colors.red,
-                              onPressed: () {
-                                context.read<ImageBloc>().add(
-                                  DeleteImageEvent(docId),
-                                );
-                              },
-                              child: Icon(Icons.delete),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.network(
+                              imageUrl,
+                              height: 260,
+                              fit: BoxFit.cover,
                             ),
-                          ],
+                          ),
+                        const SizedBox(height: 22),
+                        Text(
+                          description,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              context.read<ImageBloc>().add(
+                                DeleteImageEvent(docId),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            label: const Text('Delete'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 10,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -144,8 +204,9 @@ class _PostScreenState extends State<PostScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddPostDialog,
-        splashColor: Colors.red,
-        child: Icon(Icons.add),
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        child: const Icon(Icons.add),
       ),
     );
   }
