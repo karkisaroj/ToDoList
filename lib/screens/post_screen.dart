@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intern01/bloc/auth/auth_bloc.dart';
 import 'package:intern01/bloc/auth/auth_state.dart';
 import 'package:intern01/bloc/image_upload/image_bloc.dart';
-import 'package:intern01/bloc/theme/theme_bloc.dart';
 
 class PostScreen extends StatefulWidget {
   const PostScreen({super.key});
