@@ -1,4 +1,4 @@
-import 'package:intern01/models/list_model.dart';
+import 'package:ToDoList/models/list_model.dart';
 
 abstract class TaskState {}
 
@@ -14,4 +14,9 @@ class TaskLoaded extends TaskState {
 class TaskError extends TaskState {
   final String message;
   TaskError({required this.message});
+}
+
+class EditTask extends TaskState {
+  final String description;
+  EditTask(this.description);
 }

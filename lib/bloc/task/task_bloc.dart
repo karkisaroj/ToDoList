@@ -1,9 +1,9 @@
+import 'package:ToDoList/bloc/task/task_event.dart';
+import 'package:ToDoList/bloc/task/task_state.dart';
+import 'package:ToDoList/models/list_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intern01/bloc/task/task_event.dart';
-import 'package:intern01/bloc/task/task_state.dart';
-import 'package:intern01/models/list_model.dart';
 
 class TaskBloc extends Bloc<TaskEvent, TaskState> {
   TaskBloc() : super(TaskInitial()) {
@@ -82,6 +82,19 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
         emit(TaskLoaded(tasks: tasks));
       } catch (e) {
         emit(TaskError(message: e.toString()));
+      }
+    });
+
+    on<EditTaskEvent>((event, emit) async {
+      emit(TaskLoading());
+      try {
+        await FirebaseFirestore.instance
+            .collection("tasks")
+            .doc(event.taskId)
+            .update({"title": event.title});
+        add(LoadUserTaskEvent(userEmail: event.userEmail));
+      } catch (e) {
+        emit(TaskError(message: "Failed to edit task"));
       }
     });
   }

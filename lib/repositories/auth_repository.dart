@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intern01/models/user_model.dart';
+import 'package:ToDoList/models/user_model.dart';
 
 class AuthCall {
   Future<UserModel?> signUpEmailPassword(

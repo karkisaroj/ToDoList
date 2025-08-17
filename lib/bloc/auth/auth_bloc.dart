@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intern01/repositories/auth_repository.dart';
-import 'package:intern01/bloc/auth/auth_event.dart';
-import 'package:intern01/bloc/auth/auth_state.dart';
+import 'package:ToDoList/repositories/auth_repository.dart';
+import 'package:ToDoList/bloc/auth/auth_event.dart';
+import 'package:ToDoList/bloc/auth/auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthCall _authCall = AuthCall();

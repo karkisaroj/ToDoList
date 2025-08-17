@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intern01/bloc/auth/auth_bloc.dart';
-import 'package:intern01/bloc/auth/auth_event.dart';
-import 'package:intern01/bloc/auth/auth_state.dart';
-import 'package:intern01/screens/register.dart';
-import 'package:intern01/screens/admin_screen.dart';
-import 'package:intern01/screens/task_page.dart';
+import 'package:ToDoList/bloc/auth/auth_bloc.dart';
+import 'package:ToDoList/bloc/auth/auth_event.dart';
+import 'package:ToDoList/bloc/auth/auth_state.dart';
+import 'package:ToDoList/screens/register.dart';
+import 'package:ToDoList/screens/admin_screen.dart';
+import 'package:ToDoList/screens/task_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

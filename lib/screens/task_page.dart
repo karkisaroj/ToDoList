@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intern01/screens/post_screen.dart';
-import 'package:intern01/screens/profile_page.dart';
-import 'package:intern01/screens/register.dart';
-import 'package:intern01/bloc/auth/auth_bloc.dart';
-import 'package:intern01/bloc/auth/auth_event.dart';
-import 'package:intern01/bloc/auth/auth_state.dart';
-import 'package:intern01/bloc/task/task_bloc.dart';
-import 'package:intern01/bloc/task/task_event.dart';
-import 'package:intern01/bloc/task/task_state.dart';
+import 'package:ToDoList/screens/post_screen.dart';
+import 'package:ToDoList/screens/profile_page.dart';
+import 'package:ToDoList/screens/register.dart';
+import 'package:ToDoList/bloc/auth/auth_bloc.dart';
+import 'package:ToDoList/bloc/auth/auth_event.dart';
+import 'package:ToDoList/bloc/auth/auth_state.dart';
+import 'package:ToDoList/bloc/task/task_bloc.dart';
+import 'package:ToDoList/bloc/task/task_event.dart';
+import 'package:ToDoList/bloc/task/task_state.dart';
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
@@ -121,18 +121,66 @@ class _TaskPageState extends State<TaskPage> {
                       }
                     },
                   ),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      if (currentUserEmail != null) {
-                        context.read<TaskBloc>().add(
-                          DeleteTaskEvent(
-                            taskID: task.taskId,
-                            userEmail: currentUserEmail!,
-                          ),
-                        );
-                      }
-                    },
+
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      IconButton(
+                        onPressed: () {
+                          String newTitle = task.title;
+                          showDialog(
+                            context: context,
+                            builder: (ctx) {
+                              return AlertDialog(
+                                title: Text("Edit Task"),
+                                content: TextField(
+                                  controller: TextEditingController(
+                                    text: task.title,
+                                  ),
+                                  onChanged: (value) => newTitle = value,
+                                  decoration: InputDecoration(
+                                    labelText: "Task Title",
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(ctx).pop(),
+                                    child: Text("Cancel"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      context.read<TaskBloc>().add(
+                                        EditTaskEvent(
+                                          newTitle,
+                                          task.taskId,
+                                          currentUserEmail!,
+                                        ),
+                                      );
+                                      Navigator.of(ctx).pop();
+                                    },
+                                    child: Text("Save"),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        icon: Icon(Icons.edit_document),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          if (currentUserEmail != null) {
+                            context.read<TaskBloc>().add(
+                              DeleteTaskEvent(
+                                taskID: task.taskId,
+                                userEmail: currentUserEmail!,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ),
               );

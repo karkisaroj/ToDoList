@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intern01/bloc/auth/auth_bloc.dart';
-import 'package:intern01/bloc/auth/auth_state.dart';
-import 'package:intern01/bloc/image_upload/image_bloc.dart';
-import 'package:intern01/bloc/theme/theme_bloc.dart';
+import 'package:ToDoList/bloc/auth/auth_bloc.dart';
+import 'package:ToDoList/bloc/auth/auth_state.dart';
+import 'package:ToDoList/bloc/image_upload/image_bloc.dart';
+import 'package:ToDoList/bloc/theme/theme_bloc.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -172,14 +172,14 @@ class _ProfilePageState extends State<ProfilePage> {
                                   CircleAvatar(
                                     radius: 48,
                                     backgroundColor: colorScheme.onSurface
-                                        .withOpacity(0.08),
+                                        .withValues(alpha: 0.08),
                                     backgroundImage: profileImage,
                                     child: profileImage == null
                                         ? Icon(
                                             Icons.person,
                                             size: 48,
                                             color: colorScheme.onSurface
-                                                .withOpacity(0.5),
+                                                .withValues(alpha: 0.08),
                                           )
                                         : null,
                                   ),
@@ -359,7 +359,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         }
                         if (description != null && description.isNotEmpty) {
                           return Card(
-                            color: colorScheme.secondary.withOpacity(0.1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

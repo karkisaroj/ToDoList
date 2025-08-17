@@ -1,4 +1,4 @@
-name: intern01
+name: ToDoList
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -30,7 +30,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # Core dependencies for the app:
   flutter_screenutil: ^5.9.3
   firebase_auth: ^5.7.0
   firebase_core: ^3.15.2
@@ -42,21 +41,29 @@ dependencies:
   cloudinary_url_gen: ^1.8.0
   image_picker: ^0.8.9
   http: ^1.5.0
+  
 
  
+
 
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "lib/assets/pictures/foreground.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -86,6 +93,7 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+
   # fonts:
   #   - family: Schyler
   #     fonts:

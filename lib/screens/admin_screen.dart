@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intern01/bloc/auth/auth_bloc.dart';
-import 'package:intern01/bloc/auth/auth_event.dart';
-import 'package:intern01/bloc/auth/auth_state.dart';
-import 'package:intern01/bloc/task/task_bloc.dart';
-import 'package:intern01/bloc/task/task_event.dart';
-import 'package:intern01/bloc/task/task_state.dart';
-import 'package:intern01/screens/register.dart';
+import 'package:ToDoList/bloc/auth/auth_bloc.dart';
+import 'package:ToDoList/bloc/auth/auth_event.dart';
+import 'package:ToDoList/bloc/auth/auth_state.dart';
+import 'package:ToDoList/bloc/task/task_bloc.dart';
+import 'package:ToDoList/bloc/task/task_event.dart';
+import 'package:ToDoList/bloc/task/task_state.dart';
+import 'package:ToDoList/screens/register.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});

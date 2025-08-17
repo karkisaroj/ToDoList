@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intern01/bloc/image_upload/image_bloc.dart';
-import 'package:intern01/bloc/navigation/bloc/navigation_bloc.dart';
-import 'package:intern01/bloc/navigation/cubit/navigation_cubit.dart';
-import 'package:intern01/bloc/task/task_bloc.dart';
-import 'package:intern01/bloc/theme/theme_bloc.dart';
-import 'package:intern01/screens/splash_screen.dart';
-import 'package:intern01/screens/task_page.dart';
+import 'package:ToDoList/bloc/image_upload/image_bloc.dart';
+import 'package:ToDoList/bloc/navigation/bloc/navigation_bloc.dart';
+import 'package:ToDoList/bloc/navigation/cubit/navigation_cubit.dart';
+import 'package:ToDoList/bloc/task/task_bloc.dart';
+import 'package:ToDoList/bloc/theme/theme_bloc.dart';
+import 'package:ToDoList/screens/splash_screen.dart';
+import 'package:ToDoList/screens/task_page.dart';
 import 'bloc/auth/auth_bloc.dart';
 
 class MyApp extends StatelessWidget {

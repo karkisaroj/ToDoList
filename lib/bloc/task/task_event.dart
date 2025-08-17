@@ -33,3 +33,11 @@ class LoadUserTaskEvent extends TaskEvent {
   final String userEmail;
   LoadUserTaskEvent({required this.userEmail});
 }
+
+class EditTaskEvent extends TaskEvent {
+  final String title;
+  final String taskId;
+  final String userEmail;
+
+  EditTaskEvent(this.title, this.taskId, this.userEmail);
+}

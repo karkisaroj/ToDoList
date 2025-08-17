@@ -1,4 +1,4 @@
-import 'package:intern01/models/list_model.dart';
+import 'package:ToDoList/models/list_model.dart';
 
 class ListStore {
   Future<ListModel?> addToFirestore(ListModel task) async {
