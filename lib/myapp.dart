@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ToDoList/bloc/image_upload/image_bloc.dart';
-import 'package:ToDoList/bloc/navigation/bloc/navigation_bloc.dart';
 import 'package:ToDoList/bloc/navigation/cubit/navigation_cubit.dart';
 import 'package:ToDoList/bloc/task/task_bloc.dart';
 import 'package:ToDoList/bloc/theme/theme_bloc.dart';
@@ -18,10 +17,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
         BlocProvider<TaskBloc>(create: (context) => TaskBloc()),
-        BlocProvider<NavigationBloc>(
-          create: (context) => NavigationBloc(),
-          lazy: false,
-        ),
+
         BlocProvider<ThemeBloc>(create: (context) => ThemeBloc(), lazy: false),
         BlocProvider<ImageBloc>(create: (context) => ImageBloc()),
         BlocProvider(create: (_) => NavigationCubit(), child: TaskPage()),

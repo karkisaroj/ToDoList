@@ -1,3 +1,4 @@
+import 'package:ToDoList/bloc/navigation/cubit/navigation_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ToDoList/screens/post_screen.dart';
@@ -210,46 +211,59 @@ class _TaskPageState extends State<TaskPage> {
           }
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(['Tasks', 'Profile', 'Posts'][_currentIndex]),
-          centerTitle: true,
-          automaticallyImplyLeading: false,
-          actions: [
-            if (_currentIndex == 0)
-              IconButton(icon: Icon(Icons.add), onPressed: _showAddTaskDialog),
-            IconButton(
-              icon: Icon(Icons.logout),
-              onPressed: () {
-                context.read<AuthBloc>().add(LogoutRequested());
-              },
+      child: BlocBuilder<NavigationCubit, int>(
+        builder: (context, _currentIndex) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(['Tasks', 'Profile', 'Posts'][_currentIndex]),
+              centerTitle: true,
+              automaticallyImplyLeading: false,
+              actions: [
+                if (_currentIndex == 0)
+                  IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: _showAddTaskDialog,
+                  ),
+                IconButton(
+                  icon: Icon(Icons.logout),
+                  onPressed: () {
+                    context.read<AuthBloc>().add(LogoutRequested());
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (index) {
-            setState(() => _currentIndex = index);
-            if (index == 0) _loadUserTasks();
-          },
-          children: [_buildTaskList(), ProfilePage(), PostScreen()],
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() => _currentIndex = index);
-            _pageController.animateToPage(
-              index,
-              duration: Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          },
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Tasks'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-            BottomNavigationBarItem(icon: Icon(Icons.post_add), label: 'Posts'),
-          ],
-        ),
+            body: PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                context.read<NavigationCubit>().updateIndex(index);
+                if (index == 0) _loadUserTasks();
+              },
+              children: [_buildTaskList(), ProfilePage(), PostScreen()],
+            ),
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                context.read<NavigationCubit>().updateIndex(index);
+                _pageController.animateToPage(
+                  index,
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+              items: [
+                BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Tasks'),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.post_add),
+                  label: 'Posts',
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

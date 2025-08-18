@@ -140,7 +140,9 @@ class _ProfilePageState extends State<ProfilePage>
     if (state is ImageSelected) {
       return FileImage(state.selectedFile);
     } else if (state is ImageUploading) {
-      return FileImage(state.selectedFile);
+      if (state.selectedFile != null) {
+        return FileImage(state.selectedFile!);
+      }
     } else if (state is ImageUploaded) {
       return NetworkImage(state.imageUrl);
     } else if (state is ImageLoaded) {

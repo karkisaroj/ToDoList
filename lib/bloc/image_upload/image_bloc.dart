@@ -72,6 +72,7 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
     EditPostEvent event,
     Emitter<ImageState> emit,
   ) async {
+    emit(ImageUploading(event.newImageFile));
     String? imageUrl;
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
@@ -88,6 +89,22 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
           ),
         );
         return;
+      }
+    } else {
+      if (state is ImageLoaded) {
+        imageUrl = (state as ImageLoaded).imageUrl;
+      } else if (state is ImageUploaded) {
+        imageUrl = (state as ImageUploaded).imageUrl;
+      } else {
+        final postRef = FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('posts')
+            .doc(event.postId);
+        final doc = await postRef.get();
+        if (doc.exists && doc.data()?['uploadUrl'] != null) {
+          imageUrl = doc.data()!['uploadUrl'] as String;
+        }
       }
     }
 
@@ -107,7 +124,11 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
 
     await postRef.update(updateData);
 
-    emit(ImageUploaded(imageUrl!, description: event.newDescription));
+    if (imageUrl != null) {
+      emit(ImageUploaded(imageUrl, description: event.newDescription));
+    } else {
+      emit(ImageLoaded('', description: event.newDescription));
+    }
   }
 
   Future<void> _onUploadPost(

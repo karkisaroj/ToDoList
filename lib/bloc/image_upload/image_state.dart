@@ -14,9 +14,9 @@ final class ImageSelected extends ImageState {
 }
 
 final class ImageUploading extends ImageState {
-  final File selectedFile;
+  final File? selectedFile;
 
-  ImageUploading(this.selectedFile);
+  ImageUploading([this.selectedFile]);
 }
 
 final class ImageUploaded extends ImageState {

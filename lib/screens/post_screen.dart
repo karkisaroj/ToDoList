@@ -49,95 +49,129 @@ class _PostScreenState extends State<PostScreen> {
           },
           child: BlocBuilder<ImageBloc, ImageState>(
             builder: (context, state) {
-              if (state is ImageUploading) {
-                return const Center(child: CircularProgressIndicator());
-              }
               return Dialog(
                 insetPadding: const EdgeInsets.all(16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: (state is ImageSelected)
-                              ? Image.file(
-                                  state.selectedFile,
-                                  fit: BoxFit.cover,
-                                )
-                              : (currentImageUrl.isNotEmpty
-                                    ? Image.network(
-                                        currentImageUrl,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Center(
-                                        child: Icon(
-                                          Icons.image,
-                                          size: 60,
-                                          color: Colors.grey.shade400,
-                                        ),
-                                      )),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: 400,
+                          maxHeight: MediaQuery.of(context).size.height * 0.8,
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: descriptionController,
-                        maxLines: 2,
-                        decoration: InputDecoration(
-                          labelText: 'Description',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          contentPadding: const EdgeInsets.all(16),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton.icon(
-                            icon: const Icon(Icons.add_photo_alternate),
-                            label: const Text("Change Image"),
-                            onPressed: () async {
-                              final picked = await _picker.pickImage(
-                                source: ImageSource.gallery,
-                              );
-                              if (picked != null) {
-                                context.read<ImageBloc>().add(
-                                  SelectImageEvent(File(picked.path)),
-                                );
-                              }
-                            },
-                          ),
-                          FilledButton.icon(
-                            icon: const Icon(Icons.save),
-                            label: const Text("Save Changes"),
-                            onPressed: () {
-                              context.read<ImageBloc>().add(
-                                EditPostEvent(
-                                  postId,
-                                  (state is ImageSelected)
-                                      ? state.selectedFile
-                                      : null,
-                                  descriptionController.text.trim(),
+                        child: IntrinsicHeight(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  height: 200,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: (state is ImageSelected)
+                                      ? Image.file(
+                                          state.selectedFile,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : (currentImageUrl.isNotEmpty
+                                            ? Image.network(
+                                                currentImageUrl,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Center(
+                                                child: Icon(
+                                                  Icons.image,
+                                                  size: 60,
+                                                  color: Colors.grey.shade400,
+                                                ),
+                                              )),
                                 ),
-                              );
-                            },
+                              ),
+                              const SizedBox(height: 20),
+                              TextField(
+                                controller: descriptionController,
+                                maxLines: 2,
+                                decoration: InputDecoration(
+                                  labelText: 'Description',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  contentPadding: const EdgeInsets.all(16),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              if (state is ImageUploading) ...[
+                                const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                              Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  TextButton.icon(
+                                    icon: const Icon(Icons.add_photo_alternate),
+                                    label: const Text("Change Image"),
+                                    onPressed: (state is ImageUploading)
+                                        ? null
+                                        : () async {
+                                            final picked = await _picker
+                                                .pickImage(
+                                                  source: ImageSource.gallery,
+                                                );
+                                            if (picked != null) {
+                                              context.read<ImageBloc>().add(
+                                                SelectImageEvent(
+                                                  File(picked.path),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                  ),
+                                  FilledButton.icon(
+                                    icon: const Icon(Icons.save),
+                                    label: const Text("Save Changes"),
+                                    onPressed: (state is ImageUploading)
+                                        ? null
+                                        : () {
+                                            context.read<ImageBloc>().add(
+                                              EditPostEvent(
+                                                postId,
+                                                (state is ImageSelected)
+                                                    ? state.selectedFile
+                                                    : null,
+                                                descriptionController.text
+                                                    .trim(),
+                                              ),
+                                            );
+                                          },
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  onPressed: (state is ImageUploading)
+                                      ? null
+                                      : () => Navigator.of(context).pop(),
+                                  child: const Text('Cancel'),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               );
             },
@@ -180,14 +214,11 @@ class _PostScreenState extends State<PostScreen> {
               }
 
               return Dialog(
-                insetPadding: const EdgeInsets.all(
-                  16,
-                ), // Prevent keyboard overflow
+                insetPadding: const EdgeInsets.all(16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: SingleChildScrollView(
-                  // Make dialog scrollable
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -251,7 +282,6 @@ class _PostScreenState extends State<PostScreen> {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
-      // Removed AppBar as requested
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -331,7 +361,6 @@ class _PostScreenState extends State<PostScreen> {
                                     ),
                                   ),
                           ),
-                          // Description below the image
                           if (description.isNotEmpty)
                             Container(
                               width: double.infinity,
