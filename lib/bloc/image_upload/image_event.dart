@@ -18,6 +18,13 @@ class UploadPostEvent extends ImageEvent {
   UploadPostEvent(this.description, this.imageFile, this.userEmail);
 }
 
+class EditPostEvent extends ImageEvent {
+  final String postId;
+  final File? newImageFile;
+  final String newDescription;
+  EditPostEvent(this.postId, this.newImageFile, this.newDescription);
+}
+
 class LoadUserImageEvent extends ImageEvent {
   final String userEmail;
 

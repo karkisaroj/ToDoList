@@ -28,30 +28,148 @@ class _PostScreenState extends State<PostScreen> {
     }
   }
 
-  void _editPostDialog() async {
-    TextEditingController descriptionController = TextEditingController();
-    XFile? PickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (PickedFile == null || currentUserEmail == null) return;
-    if (!mounted) return;
-    showDialog(
+  void _editPostDialog(
+    String postId,
+    String currentDescription,
+    String currentImageUrl,
+  ) async {
+    TextEditingController descriptionController = TextEditingController(
+      text: currentDescription,
+    );
+    await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Edit Post"),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.file(File(PickedFile.path), height: 120),
-              SizedBox(height: 10),
-              TextField(
-                controller: descriptionController,
-                decoration: InputDecoration(hintText: 'Enter new description'),
-              ),
-            ],
+      barrierDismissible: false,
+      builder: (context) {
+        return BlocListener<ImageBloc, ImageState>(
+          listener: (context, state) {
+            if (state is ImageUploaded || state is ImageUploadFailed) {
+              Navigator.of(context).pop();
+            }
+          },
+          child: BlocBuilder<ImageBloc, ImageState>(
+            builder: (context, state) {
+              if (state is ImageUploading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return AlertDialog(
+                title: const Text("Edit Post"),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: (state is ImageSelected)
+                              ? Image.file(
+                                  state.selectedFile,
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                )
+                              : (currentImageUrl.isNotEmpty
+                                    ? Image.network(
+                                        currentImageUrl,
+                                        height: 180,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Container(
+                                        height: 180,
+                                        width: double.infinity,
+                                        color: Colors.grey[200],
+                                        child: const Icon(
+                                          Icons.image,
+                                          size: 80,
+                                          color: Colors.grey,
+                                        ),
+                                      )),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      TextField(
+                        controller: descriptionController,
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          labelText: 'Description',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            icon: const Icon(Icons.save),
+                            label: const Text("Edit Post"),
+                            onPressed: () {
+                              context.read<ImageBloc>().add(
+                                EditPostEvent(
+                                  postId,
+                                  (state is ImageSelected)
+                                      ? state.selectedFile
+                                      : null,
+                                  descriptionController.text.trim(),
+                                ),
+                              );
+                            },
+                          ),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            icon: const Icon(Icons.add_photo_alternate),
+                            label: const Text("Add New Picture"),
+                            onPressed: () async {
+                              final picked = await _picker.pickImage(
+                                source: ImageSource.gallery,
+                              );
+                              if (picked != null) {
+                                context.read<ImageBloc>().add(
+                                  SelectImageEvent(File(picked.path)),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
-        ),
-        actions: [],
-      ),
+        );
+      },
     );
   }
 
@@ -154,6 +272,7 @@ class _PostScreenState extends State<PostScreen> {
                                 context.read<ImageBloc>().add(
                                   DeleteImageEvent(docId),
                                 );
+                                Navigator.of(context).pop();
                               },
                               child: (Icon(Icons.delete)),
                             ),
@@ -164,7 +283,8 @@ class _PostScreenState extends State<PostScreen> {
                             width: 100,
                             child: FloatingActionButton(
                               backgroundColor: Colors.white,
-                              onPressed: _editPostDialog,
+                              onPressed: () =>
+                                  _editPostDialog(docId, description, imageUrl),
                               mini: true,
                               child: Icon(Icons.edit),
                             ),

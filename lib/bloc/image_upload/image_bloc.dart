@@ -19,6 +19,7 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
     on<ClearImageEvent>(_onClearImage);
     on<SaveDescriptionEvent>(_onSaveDescription);
     on<DeleteImageEvent>(_onDeleteCard);
+    on<EditPostEvent>(_onEditPost);
   }
 
   void _onSelectImage(SelectImageEvent event, Emitter<ImageState> emit) {
@@ -65,6 +66,48 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
     } catch (error) {
       emit(ImageUploadFailed(error.toString(), selectedFile: event.imageFile));
     }
+  }
+
+  Future<void> _onEditPost(
+    EditPostEvent event,
+    Emitter<ImageState> emit,
+  ) async {
+    String? imageUrl;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (event.newImageFile != null) {
+      emit(ImageUploading(event.newImageFile!));
+      imageUrl = await CloudinaryService.instance.uploadImage(
+        event.newImageFile!,
+      );
+      if (imageUrl == null) {
+        emit(
+          ImageUploadFailed(
+            'Failed to upload to Cloudinary',
+            selectedFile: event.newImageFile!,
+          ),
+        );
+        return;
+      }
+    }
+
+    final postRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('posts')
+        .doc(event.postId);
+
+    final updateData = {
+      'uploadDescription': event.newDescription,
+      'timestamp': FieldValue.serverTimestamp(),
+    };
+    if (imageUrl != null) {
+      updateData['uploadUrl'] = imageUrl;
+    }
+
+    await postRef.update(updateData);
+
+    emit(ImageUploaded(imageUrl!, description: event.newDescription));
   }
 
   Future<void> _onUploadPost(
@@ -205,6 +248,23 @@ class ImageBloc extends Bloc<ImageEvent, ImageState> {
           .delete();
     }
   }
+
+  // Future<void> _editPostFirestore(
+  //   String docId,
+  //   String uploadUrl,
+  //   String? uploadDescription,
+  // ) async {
+  //   final uid = FirebaseAuth.instance.currentUser?.uid;
+  //   await FirebaseFirestore.instance
+  //       .collection('users')
+  //       .doc(uid)
+  //       .collection(evet)
+  //       .add({
+  //         'uploadUrl': uploadUrl,
+  //         'uploadDescription': uploadDescription,
+  //         'timestamp': FieldValue.serverTimestamp(),
+  //       });
+  // }
 
   Future<void> _uploadToFirestore(
     String uploadUrl,
