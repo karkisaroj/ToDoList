@@ -15,17 +15,32 @@ final class LightTheme extends ThemeState {
     : super(
         ThemeData.light().copyWith(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.grey,
+            seedColor: Colors.blue,
             brightness: Brightness.light,
           ),
-          appBarTheme: AppBarTheme(
-            backgroundColor: Colors.grey,
-            foregroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 1,
+            iconTheme: IconThemeData(color: Colors.black),
+            titleTextStyle: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
           ),
-          scaffoldBackgroundColor: Colors.white,
+          scaffoldBackgroundColor: const Color(0xFFF8FAFF),
           textTheme: ThemeData.light().textTheme.apply(
             bodyColor: Colors.black,
             displayColor: Colors.black,
+          ),
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            backgroundColor: Colors.white,
+            selectedItemColor: Color(0xFF1976D2),
+            unselectedItemColor: Colors.grey,
+            elevation: 8,
+            type: BottomNavigationBarType.fixed,
+            showUnselectedLabels: true,
           ),
         ),
       );
